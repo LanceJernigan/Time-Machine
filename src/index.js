@@ -9,7 +9,6 @@ export const timeMachine = (preloadedState) => {
     }
   }
   let currentBranchKey = 'master'
-  let currentBranch = tree.master
   
   /*
    *  getState() - Returns the curent state of the Time Machine
@@ -41,7 +40,7 @@ export const timeMachine = (preloadedState) => {
   
   const getBranch = (branchKey = currentBranchKey) => {
     
-    return tree.hasOwnProperty(branchKey) ? branchKey === currentBranchKey ? currentBranch : tree[branchKey] : 'No Branch.'
+    return tree.hasOwnProperty(branchKey) ? tree[branchKey] : 'No Branch.'
     
   }
   
@@ -75,7 +74,7 @@ export const timeMachine = (preloadedState) => {
   
   const updateBranch = ({index, state}) => {
     
-    currentBranch = getBranch()
+    let currentBranch = getBranch()
     
     currentBranch.index = state ? (currentBranch.state.push(state) - 1) : index > (currentBranch.state.length - 1) ? (currentBranch.state.length - 1) : index < 0 ? 0 : index
     
@@ -84,21 +83,48 @@ export const timeMachine = (preloadedState) => {
     return getState()
     
   }
+  
+  /*
+  *  checkout - Change currentBranchKey to whatever branch is selected
+  *
+  *  @params - branch (string) - The branch to select (or create if non-existent)
+  *
+  *  @returns - If no branch string is passed, a list of available branches
+  *           - If branch string is passed, the current state of that branch
+  */
+  
+  const checkout = (branch, preloadedState) => {
+    
+    if (branch) {
+      
+      if (! tree.hasOwnProperty(branch)) {
+        
+        tree[branch] = {
+          index: 0,
+          state: preloadedState ? [preloadedState] : []
+        }
+        
+      }
+      
+      currentBranchKey = branch
+      
+      return getState()
+      
+    } else {
+      
+      return Object.keys(tree)
+      
+    }
+    
+  }
 
-  return {getState, next, previous}
+  return {getState, next, previous, checkout}
   
 }
 
-/*
- *  Example - Just a quick example of how to interact with the API
- */
-
 const tree = timeMachine({test: 1})
 
-tree.next({test: 2})
-
-const prev = tree.previous()
-const next = tree.next()
-const curr = tree.getState()
-
-console.log(prev, next, curr)
+console.log(tree.getState())
+console.log(tree.next({test: 2}))
+console.log(tree.checkout('new', {testNew: 1}))
+console.log(tree.next({testNew: 2}))
