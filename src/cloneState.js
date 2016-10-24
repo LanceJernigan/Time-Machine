@@ -1,4 +1,4 @@
-export const cloneState = val => {
+const cloneState = val => {
   
   const type = typeof val
   
@@ -15,3 +15,5 @@ export const cloneState = val => {
   return lookup.hasOwnProperty(type) ? lookup[type](val) : lookup.default()
   
 }
+
+export default cloneState

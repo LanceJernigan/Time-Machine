@@ -1,130 +1,47 @@
-import {cloneState} from './cloneState'
+import {timeMachine} from './timeMachine'
 
-export const timeMachine = (preloadedState) => {
-  
-  let tree = {
-    master: {
-      index: 0,
-      state: preloadedState ? [preloadedState] : []
-    }
-  }
-  let currentBranchKey = 'master'
-  
-  /*
-   *  getState() - Returns the curent state of the Time Machine
-   *
-   *  @params - branchKey (string) - Specific branch to get current state
-   *          - branchIndex (int) - Specific index to get from branch state
-   *
-   *  @returns - State object
-   */
-  
-  const getState = (branchKey = currentBranchKey, branchIndex) => {
-    
-    branchIndex = ! isNaN(branchKey) ? branchKey : branchIndex
-    branchKey = ! isNaN(branchKey) ? currentBranchKey : branchKey
-    
-    const branch = getBranch(branchKey)
-    
-    return branch.state.length ? cloneState(branch.state[branch.index]) : 'No state.'
-    
-  }
-  
-  /*
-   *  getBranch - Get a branch by branchKey or current branch if no branchKey is supplied
-   *
-   *  @params - branchKey (string) - key of the branch you would like to retrieve
-   *
-   *  @returns - Branch object
-   */
-  
-  const getBranch = (branchKey = currentBranchKey) => {
-    
-    return tree.hasOwnProperty(branchKey) ? tree[branchKey] : 'No Branch.'
-    
-  }
-  
-  /*
-   *  next - Either get the next state of the current branch or define the next step of state in the branch
-   *
-   *  @params - val (any) - The next value of the current branch
-   */
-  
-  const next = val => {
-    
-    return val ? updateBranch({state: val}) : updateBranch({index: getBranch().index + 1})
-    
-  }
-  
-  /*
-   *  previous - Get the previous state of current branch
-   */
-  
-  const previous = () => {
+/*
+ *  Set up initial variable to use as our timeMachine.  Any data passed to the timeMachine upon initialization
+ *  becomes the initial state the internal pointer references.
+ */
 
-    return updateBranch({index: (getBranch().index - 1)})
-    
-  }
-  
-  /*
-   *  updateBranch - Updates the current branch with the given values
-   *
-   *  @params - branch (branch object) - The next step of the branch
-   */
-  
-  const updateBranch = ({index, state}) => {
-    
-    let currentBranch = getBranch()
-    
-    currentBranch.index = state ? (currentBranch.state.push(state) - 1) : index > (currentBranch.state.length - 1) ? (currentBranch.state.length - 1) : index < 0 ? 0 : index
-    
-    tree[currentBranchKey] = currentBranch
-    
-    return getState()
-    
-  }
-  
-  /*
-  *  checkout - Change currentBranchKey to whatever branch is selected
-  *
-  *  @params - branch (string) - The branch to select (or create if non-existent)
-  *
-  *  @returns - If no branch string is passed, a list of available branches
-  *           - If branch string is passed, the current state of that branch
+const test = timeMachine({
+  test: 1
+})
+
+/*
+ *  Just to make sure our initial state got set.
+ */
+
+console.log(test.getState())
+
+/*
+ *  Give our test variable some data for us to use by passing data to our next method
+ */
+
+test.next({
+  test:2
+})
+
+/*
+ *  Get the current state of our variable
+ */
+
+console.log(test.getState())
+
+/*
+ *  We can also grab the previous state of our variable and set the internal pointer to that value
+ */
+
+console.log(test.previous())
+
+/*
+ *  Which means, getState will return the same thing as we returned last time
+ */
+ 
+ console.log(test.getState())
+ 
+ /*
+  *  And we can reset our pointer to the next state using next() without passing any data
   */
   
-  const checkout = (branch, preloadedState) => {
-    
-    if (branch) {
-      
-      if (! tree.hasOwnProperty(branch)) {
-        
-        tree[branch] = {
-          index: 0,
-          state: preloadedState ? [preloadedState] : []
-        }
-        
-      }
-      
-      currentBranchKey = branch
-      
-      return getState()
-      
-    } else {
-      
-      return Object.keys(tree)
-      
-    }
-    
-  }
-
-  return {getState, next, previous, checkout}
-  
-}
-
-const tree = timeMachine({test: 1})
-
-console.log(tree.getState())
-console.log(tree.next({test: 2}))
-console.log(tree.checkout('new', {testNew: 1}))
-console.log(tree.next({testNew: 2}))
